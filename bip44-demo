@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# Demo on creating a keys using bip44 conventions
+# Also demonstrates that we can test that a child belongs to a parent if we know its parent and index.
+#
+# Will create several child keys and parents following the conventions coin_type=60 (ethereum)
+#   m / purpose' / coin_type' / account' / change / address_index
+# where purpose' is always 44 and coin_type' is always 60
+
+# Based on https://github.com/lyndsysimon/bip32utils
+
+# pip2 install bip32utils
+
+set -e
+
+function gen() {
+  ENTROPY=$1
+  ENTROPY_TYPE=${2:-entropy}
+  KEYSPEC=${3}
+
+  echo "${ENTROPY}" | \
+    bip32gen -v \
+      -i ${ENTROPY_TYPE} -f - -x \
+      -o privkey,wif,pubkey,addr,xprv,xpub -F - -X ${KEYSPEC} \
+      m \
+      m/44h \
+      m/44h/60h \
+      m/44h/60h/100h/0 \
+      m/44h/60h/100h/1 \
+      m/44h/60h/100h/2 
+}
+
+if [[ "${1}" == "" ]]; then
+  echo "Usage: "
+  echo "  bip44-demo ENTROPY ENTROPY_TYPE={entropy|private|public} [KEYSPEC]"
+  echo
+  echo "Example: "
+  echo
+
+  echo "Generate the HD-wallet"
+  echo "  ./bip44-demo 000102030405060708090A0B0C0D0E0F entropy"
+  exit 1
+fi
+
+gen "${@}"
